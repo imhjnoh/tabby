@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <template id="li_template">
+      <li>
+        <div class="li_left">
+        <input type="checkbox" class="tab-checkbox" />
+        <a>
+          <h3 class="title">Tab Title</h3>
+          <p class="pathname">Tab Pathname</p>
+        </a>
+      </div>
+        <button class="li_btn">바로가기</button>
+      </li>
+    </template>
+
+    <template id="colors_option">
+      <option class="color_option">Option</option>
+    </template>
+
+    <h1 id="date">Google Dev Docs</h1>
+    <input type="text" placeholder="Input group name" id="group-name-input"></input>
+    <button>Group Tabs</button>
+    <button id="select-all">Select All</button>
+    <button id="deselect-all">deSelect All</button>
+    <select id="colors">
+    </select>
+    <ul></ul>
+
+    <script src="./popup.js" type="module"></script>
+  </body>
+</html>
