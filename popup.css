@@ -158,7 +158,13 @@ p {
   text-align: center;
   text-shadow: 1px 0 0px white, -1px 0 0px white, 0 1px 0px white,
     0 -1px 0px white;
-  border: 2px solid;
+  border: none;
+}
+#color-chip {
+  width: 16px;
+  height: 100%;
+  content: " ";
+  background-color: var(--primary-color);
 }
 .input-wrapper input[type="text"] {
   border: none;
@@ -175,4 +181,9 @@ p {
 .input-wrapper button:hover {
   box-shadow: 0px 4px 0px rgba(150, 100, 0, 1);
   transform: translateY(-4px);
+}
+button:focus,
+input:focus,
+select:focus {
+  outline: none;
 }

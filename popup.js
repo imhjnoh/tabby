@@ -12,6 +12,7 @@ tabby.src = tabbyImage;
 const tabs = await chrome.tabs.query({ currentWindow: true });
 let selectedTabs = [];
 const tabColors = [
+  "random",
   "grey",
   "blue",
   "red",
@@ -21,8 +22,20 @@ const tabColors = [
   "purple",
   "cyan",
   "orange",
-  "random",
 ];
+
+const tabColorMap = {
+  random: "FFC800",
+  grey: "#DBDCE0",
+  blue: "#8AB4F9",
+  red: "#F38B82",
+  yellow: "#FDD664",
+  green: "#81CA95",
+  pink: "#FF8BCC",
+  purple: "#C58AFA",
+  cyan: "#78D9ED",
+  orange: "#FCAD70",
+};
 
 const colorTemplate = document.getElementById("colors_option");
 const colorElements = new Set();
@@ -33,10 +46,11 @@ for (const color of tabColors) {
   colorElements.add(element);
 }
 const colorSelector = document.querySelector("select");
+const colorChip = document.getElementById("color-chip");
 colorSelector.append(...colorElements);
-colorSelector.style.borderColor = getColor();
+colorChip.style.before = tabColorMap[getColor()];
 colorSelector.addEventListener("change", ({ target }) => {
-  colorSelector.style.borderColor = target.value;
+  colorChip.style.backgroundColor = tabColorMap[target.value];
 });
 
 const collator = new Intl.Collator();
@@ -44,7 +58,6 @@ tabs.sort((a, b) => collator.compare(a.title, b.title));
 
 const template = document.getElementById("li_template");
 const elements = new Set();
-console.log(tabs);
 for (const tab of tabs) {
   const element = template.content.firstElementChild.cloneNode(true);
 
@@ -106,7 +119,11 @@ const selectAllBtn = document.getElementById("select-all");
 const deselectAllBtn = document.getElementById("deselect-all");
 
 button.addEventListener("click", async () => {
-  const color = getColor();
+  const selectedColor = getColor();
+  const color =
+    selectedColor != "random"
+      ? selectedColor
+      : tabColors[Math.floor(Math.random() * tabColors.length - 1) + 1];
   const tabIds = [...selectedTabs];
   if (tabIds.length) {
     const group = await chrome.tabs.group({ tabIds });
