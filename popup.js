@@ -1,9 +1,13 @@
-const today = new Date().toString();
+const today = new Date().toLocaleString();
 document.getElementById("date").textContent = today;
 setInterval(() => {
-  const today = new Date().toString();
+  const today = new Date().toLocaleString();
   document.getElementById("date").textContent = today;
 }, 1000);
+const defaultFavicon = chrome.runtime.getURL("images/icon-32.png");
+const tabbyImage = chrome.runtime.getURL("images/icon-128.png");
+const tabby = document.querySelector(".tabby");
+tabby.src = tabbyImage;
 
 const tabs = await chrome.tabs.query({ currentWindow: true });
 let selectedTabs = [];
@@ -17,18 +21,23 @@ const tabColors = [
   "purple",
   "cyan",
   "orange",
+  "random",
 ];
 
 const colorTemplate = document.getElementById("colors_option");
 const colorElements = new Set();
 for (const color of tabColors) {
   const element = colorTemplate.content.firstElementChild.cloneNode(true);
-  console.log(color, element.querySelector(".color_option"));
   element.textContent = color;
-  element.style.color = color;
+  element.style.background = color;
   colorElements.add(element);
 }
-document.querySelector("select").append(...colorElements);
+const colorSelector = document.querySelector("select");
+colorSelector.append(...colorElements);
+colorSelector.style.borderColor = getColor();
+colorSelector.addEventListener("change", ({ target }) => {
+  colorSelector.style.borderColor = target.value;
+});
 
 const collator = new Intl.Collator();
 tabs.sort((a, b) => collator.compare(a.title, b.title));
@@ -41,8 +50,12 @@ for (const tab of tabs) {
 
   const title = tab.title.split("-")[0].trim();
   const pathname = new URL(tab.url).host;
+  const favicon = tab.favIconUrl;
 
   element.querySelector(".title").textContent = title;
+  element.querySelector(".title").title = title;
+  element.querySelector(".icon").src =
+    favicon != null && favicon != "" ? favicon : defaultFavicon;
   element.querySelector(".pathname").textContent = pathname;
   element
     .querySelector(".tab-checkbox")
@@ -50,7 +63,7 @@ for (const tab of tabs) {
       updateTabList(tab.id, target.checked);
     });
   element.querySelector(".tab-checkbox").id = tab.id;
-  element.querySelector("a").addEventListener("click", async () => {
+  element.querySelector(".li_btn").addEventListener("click", async () => {
     // need to focus window as well as the active tab
     await chrome.tabs.update(tab.id, { active: true });
     await chrome.windows.update(tab.windowId, { focused: true });
@@ -93,13 +106,15 @@ const selectAllBtn = document.getElementById("select-all");
 const deselectAllBtn = document.getElementById("deselect-all");
 
 button.addEventListener("click", async () => {
-  console.log(selectedTabs);
   const color = getColor();
   const tabIds = [...selectedTabs];
   if (tabIds.length) {
     const group = await chrome.tabs.group({ tabIds });
     const groupName = document.querySelector("#group-name-input").value;
-    await chrome.tabGroups.update(group, { color, title: groupName ?? "DOCS" });
+    await chrome.tabGroups.update(group, {
+      color,
+      title: "🐱" + groupName ?? "Tabby",
+    });
   }
 });
 
