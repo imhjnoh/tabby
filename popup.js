@@ -1,6 +1,3 @@
-await init();
-await initTabs();
-
 const tabColors = [
   "random",
   "grey",
@@ -39,6 +36,9 @@ const tabby = document.querySelector(".tabby");
 tabby.src = tabbyImage;
 let tabs;
 let selectedTabs = [];
+
+await init();
+await initTabs();
 
 async function init() {
   tabs = await chrome.tabs.query({ currentWindow: true });
