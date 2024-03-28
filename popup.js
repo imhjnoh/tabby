@@ -1,16 +1,6 @@
-const today = new Date().toLocaleString();
-document.getElementById("date").textContent = today;
-setInterval(() => {
-  const today = new Date().toLocaleString();
-  document.getElementById("date").textContent = today;
-}, 1000);
-const defaultFavicon = chrome.runtime.getURL("images/icon-32.png");
-const tabbyImage = chrome.runtime.getURL("images/icon-128.png");
-const tabby = document.querySelector(".tabby");
-tabby.src = tabbyImage;
+await init();
+await initTabs();
 
-const tabs = await chrome.tabs.query({ currentWindow: true });
-let selectedTabs = [];
 const tabColors = [
   "random",
   "grey",
@@ -37,6 +27,24 @@ const tabColorMap = {
   orange: "#FCAD70",
 };
 
+const today = new Date().toLocaleString();
+document.getElementById("date").textContent = today;
+setInterval(() => {
+  const today = new Date().toLocaleString();
+  document.getElementById("date").textContent = today;
+}, 1000);
+const defaultFavicon = chrome.runtime.getURL("images/icon-32.png");
+const tabbyImage = chrome.runtime.getURL("images/icon-128.png");
+const tabby = document.querySelector(".tabby");
+tabby.src = tabbyImage;
+let tabs;
+let selectedTabs = [];
+
+async function init() {
+  tabs = await chrome.tabs.query({ currentWindow: true });
+  selectedTabs = [];
+}
+
 const colorTemplate = document.getElementById("colors_option");
 const colorElements = new Set();
 for (const color of tabColors) {
@@ -56,35 +64,47 @@ colorSelector.addEventListener("change", ({ target }) => {
 const collator = new Intl.Collator();
 tabs.sort((a, b) => collator.compare(a.title, b.title));
 
-const template = document.getElementById("li_template");
-const elements = new Set();
-for (const tab of tabs) {
-  const element = template.content.firstElementChild.cloneNode(true);
+async function initTabs() {
+  const template = document.getElementById("li_template");
+  const list = document.querySelector("ul");
+  list.innerHTML = "";
+  const elements = new Set();
+  for (const tab of tabs) {
+    const element = template.content.firstElementChild.cloneNode(true);
 
-  const title = tab.title.split("-")[0].trim();
-  const pathname = new URL(tab.url).host;
-  const favicon = tab.favIconUrl;
+    const title = tab.title.split("-")[0].trim();
+    const pathname = new URL(tab.url).host;
+    const favicon = tab.favIconUrl;
+    const groupId = tab.groupId;
 
-  element.querySelector(".title").textContent = title;
-  element.querySelector(".title").title = title;
-  element.querySelector(".icon").src =
-    favicon != null && favicon != "" ? favicon : defaultFavicon;
-  element.querySelector(".pathname").textContent = pathname;
-  element
-    .querySelector(".tab-checkbox")
-    .addEventListener("change", ({ target }) => {
-      updateTabList(tab.id, target.checked);
+    console.log(groupId);
+    if (groupId > -1) {
+      const group = await chrome.tabGroups.get(groupId);
+      console.log(group);
+      element.querySelector(".li_group_color").style.backgroundColor =
+        tabColorMap[group.color];
+    }
+    element.querySelector(".title").textContent = title;
+    element.querySelector(".title").title = title;
+    element.querySelector(".icon").src =
+      favicon != null && favicon != "" ? favicon : defaultFavicon;
+    element.querySelector(".pathname").textContent = pathname;
+    element
+      .querySelector(".tab-checkbox")
+      .addEventListener("change", ({ target }) => {
+        updateTabList(tab.id, target.checked);
+      });
+    element.querySelector(".tab-checkbox").id = tab.id;
+    element.querySelector(".li_btn").addEventListener("click", async () => {
+      // need to focus window as well as the active tab
+      await chrome.tabs.update(tab.id, { active: true });
+      await chrome.windows.update(tab.windowId, { focused: true });
     });
-  element.querySelector(".tab-checkbox").id = tab.id;
-  element.querySelector(".li_btn").addEventListener("click", async () => {
-    // need to focus window as well as the active tab
-    await chrome.tabs.update(tab.id, { active: true });
-    await chrome.windows.update(tab.windowId, { focused: true });
-  });
 
-  elements.add(element);
+    elements.add(element);
+  }
+  list.append(...elements);
 }
-document.querySelector("ul").append(...elements);
 
 function updateTabList(tabId, checked) {
   if (checked === true) {
@@ -132,6 +152,8 @@ button.addEventListener("click", async () => {
       color,
       title: "🐱" + groupName ?? "Tabby",
     });
+    await init();
+    await initTabs();
   }
 });
 
